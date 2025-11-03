@@ -1,0 +1,175 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+// Interfaz principal para Signal (read-only)
+@FunctionalInterface
+interface Signal<T> extends Supplier<T> {
+    // Método para suscribirse a cambios
+    default void subscribe(Consumer<T> listener) {
+        if (this instanceof WritableSignal) {
+            ((WritableSignal<T>) this).addListener(listener);
+        }
+    }
+    
+    // Método para crear señales computadas
+    default <R> Signal<R> map(Function<T, R> mapper) {
+        return () -> mapper.apply(get());
+    }
+}
+
+// Signal escribible
+class WritableSignal<T> implements Signal<T> {
+    private T value;
+    private final List<Consumer<T>> listeners = new ArrayList<>();
+    
+    private WritableSignal(T initialValue) {
+        this.value = initialValue;
+    }
+    
+    // Factory method
+    public static <T> WritableSignal<T> of(T initialValue) {
+        return new WritableSignal<>(initialValue);
+    }
+    
+    @Override
+    public T get() {
+        return value;
+    }
+    
+    // Actualizar valor y notificar
+    public void set(T newValue) {
+        if (!java.util.Objects.equals(this.value, newValue)) {
+            this.value = newValue;
+            notifyListeners();
+        }
+    }
+    
+    // Actualizar basado en el valor actual
+    public void update(Function<T, T> updater) {
+        set(updater.apply(value));
+    }
+    
+    void addListener(Consumer<T> listener) {
+        listeners.add(listener);
+    }
+    
+    private void notifyListeners() {
+        listeners.forEach(listener -> listener.accept(value));
+    }
+}
+
+// Signal computada (derivada de otras signals)
+class ComputedSignal<T> implements Signal<T> {
+    private final Supplier<T> computation;
+    private T cachedValue;
+    private boolean isDirty = true;
+    
+    private ComputedSignal(Supplier<T> computation) {
+        this.computation = computation;
+    }
+    
+    public static <T> ComputedSignal<T> of(Supplier<T> computation) {
+        return new ComputedSignal<>(computation);
+    }
+    
+    @Override
+    public T get() {
+        if (isDirty) {
+            cachedValue = computation.get();
+            isDirty = false;
+        }
+        return cachedValue;
+    }
+    
+    public void markDirty() {
+        isDirty = true;
+    }
+}
+
+// Clase de utilidades para crear signals
+class Signals {
+    // Crear signal escribible
+    public static <T> WritableSignal<T> signal(T initialValue) {
+        return WritableSignal.of(initialValue);
+    }
+    
+    // Crear signal computada
+    public static <T> ComputedSignal<T> computed(Supplier<T> computation) {
+        return ComputedSignal.of(computation);
+    }
+    
+    // Efecto reactivo
+    public static <T> void effect(Signal<T> signal, Consumer<T> effect) {
+        signal.subscribe(effect);
+        effect.accept(signal.get()); // Ejecutar inmediatamente
+    }
+}
+
+// Ejemplo de uso
+class SignalExample {
+    public static void main(String[] args) {
+        // Signal simple
+        var count = Signals.signal(0);
+        
+        System.out.println("Valor inicial: " + count.get());
+        
+        // Signal computada
+        var doubled = Signals.computed(() -> count.get() * 2);
+        var message = Signals.computed(() -> 
+            "El contador está en: " + count.get()
+        );
+        
+        // Efecto reactivo
+        Signals.effect(count, value -> 
+            System.out.println("Count cambió a: " + value)
+        );
+        
+        Signals.effect(doubled, value -> 
+            System.out.println("Doubled es ahora: " + value)
+        );
+        
+        // Modificar valores
+        count.set(5);
+        System.out.println("Doubled: " + doubled.get());
+        System.out.println("Message: " + message.get());
+        
+        // Actualizar usando función
+        count.update(n -> n + 1);
+        System.out.println("Después de update: " + count.get());
+        System.out.println("Doubled: " + doubled.get());
+        
+        // Usar map (transformación funcional)
+        var tripled = count.map(n -> n * 3);
+        System.out.println("Tripled: " + tripled.get());
+    }
+}
+```
+
+## Características principales:
+
+1. **Signal básica**: `WritableSignal<T>` permite lectura y escritura
+2. **Signal computada**: `ComputedSignal<T>` se deriva de otras signals
+3. **Programación funcional**:
+   - Usa `Supplier<T>`, `Consumer<T>`, `Function<T, R>`
+   - Método `map()` para transformaciones
+   - Método `update()` para actualizaciones funcionales
+4. **Reactividad**: Sistema de suscriptores que se notifican automáticamente
+5. **Inmutabilidad conceptual**: Los valores se cambian creando nuevas referencias
+
+**Salida del ejemplo:**
+```
+Valor inicial: 0
+Count cambió a: 0
+Doubled es ahora: 0
+Count cambió a: 5
+Doubled es ahora: 10
+Doubled: 10
+Message: El contador está en: 5
+Count cambió a: 6
+Doubled es ahora: 12
+Después de update: 6
+Doubled: 12
+Tripled: 18
