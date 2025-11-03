@@ -4,8 +4,7 @@
 
 ## Objetivos del Laboratorio
 
-Al finalizar este laboratorio, el estudiante será capaz de:
-
+Al finalizar este laboratorio, serás capaz de:
 - Crear y utilizar interfaces funcionales personalizadas y predefinidas
 - Implementar expresiones lambda y referencias a métodos
 - Aplicar métodos default en interfaces para extender funcionalidad
