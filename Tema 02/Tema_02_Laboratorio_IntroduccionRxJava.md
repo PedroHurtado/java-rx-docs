@@ -1133,4 +1133,3 @@ En este laboratorio has:
 ✅ Utilizado Schedulers para control de concurrencia  
 ✅ Gestionado Disposables para prevenir memory leaks  
 
-**Próximo laboratorio**: Profundizaremos en tipos de Observables (Flowable, Single, Maybe, Completable) y sus casos de uso específicos.

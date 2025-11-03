@@ -733,4 +733,4 @@ En este tema hemos cubierto:
 
 ---
 
-**Duración estimada del tema**: 2 horas (1 hora teoría + 1 hora laboratorio)
+

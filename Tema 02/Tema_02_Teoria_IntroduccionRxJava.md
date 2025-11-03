@@ -565,4 +565,3 @@ En este tema hemos aprendido:
 
 ---
 
-**Próximo tema**: Tema 3 - Observables y Observers (profundización en los tipos y su uso)

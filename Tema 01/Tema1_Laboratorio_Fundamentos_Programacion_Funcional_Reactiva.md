@@ -1390,6 +1390,5 @@ Has practicado:
 
 ---
 
-**Tiempo estimado de completar**: 3-4 horas
 
-**Siguiente paso**: Una vez dominados estos conceptos, estarás listo para el Tema 2 donde introduciremos ReactiveX y RxJava 2.
+
