@@ -1,0 +1,9 @@
+Spring WebFlux
+Spring Virtual thread-> 21
+       @async
+SSE
+Conexion entre diferentes enpoints
+WebSocket
+
+
+una cuenta de github personal
