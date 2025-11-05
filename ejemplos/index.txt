@@ -1,9 +1,11 @@
 Spring WebFlux
 Spring Virtual thread-> 21
        @async
-SSE
+
 Conexion entre diferentes enpoints
 WebSocket
-
+SSE
 
 una cuenta de github personal
+
+https://inside.java/2021/05/10/networking-io-with-virtual-threads/
