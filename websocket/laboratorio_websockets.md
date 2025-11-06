@@ -109,43 +109,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 }
 ```
 
-### 2.3 Controlador REST con eventos Server-Sent
-
-```java
-package com.ejemplo.websocket.controller;
-
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
-
-import java.time.Duration;
-import java.time.LocalTime;
-
-@RestController
-@RequestMapping("/api")
-public class EventController {
-
-    private final Sinks.Many<String> eventSink = Sinks.many().multicast().onBackpressureBuffer();
-
-    @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamEvents() {
-        return eventSink.asFlux()
-                .mergeWith(
-                    Flux.interval(Duration.ofSeconds(5))
-                        .map(i -> "Heartbeat: " + LocalTime.now())
-                );
-    }
-
-    @PostMapping("/send")
-    public Mono<String> sendEvent(@RequestBody String message) {
-        eventSink.tryEmitNext(message);
-        return Mono.just("Evento enviado: " + message);
-    }
-}
-```
-
-### 2.4 Clase Principal
+### 2.3 Clase Principal
 
 ```java
 package com.ejemplo.websocket;
@@ -409,17 +373,6 @@ Permite que cada cliente se identifique con un nombre de usuario que se muestre 
 
 ### TODO 3: Historial de mensajes
 Implementa un almacenamiento temporal de los últimos 50 mensajes para que los nuevos clientes puedan ver el historial al conectarse.
-
-### TODO 4: Server-Sent Events
-Crea una segunda página HTML que se conecte al endpoint `/api/events` usando `EventSource` para recibir eventos del servidor.
-
-**Ejemplo:**
-```javascript
-const eventSource = new EventSource('http://localhost:8080/api/events');
-eventSource.onmessage = (event) => {
-    console.log('Evento recibido:', event.data);
-};
-```
 
 ## Preguntas de Reflexión
 
