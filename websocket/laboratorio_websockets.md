@@ -109,7 +109,31 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 }
 ```
 
-### 2.3 Clase Principal
+### 2.3 Configuración CORS
+
+```java
+package com.ejemplo.websocket.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.config.CorsRegistry;
+import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+
+@Configuration
+@EnableWebFlux
+public class CorsConfig implements WebFluxConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("*")
+                .allowedHeaders("*");
+    }
+}
+```
+
+### 2.4 Clase Principal
 
 ```java
 package com.ejemplo.websocket;
@@ -347,13 +371,36 @@ document.addEventListener('DOMContentLoaded', () => {
 mvn spring-boot:run
 ```
 
-### 4.2 Abrir el cliente
+### 4.2 Servir el cliente HTML
 
-1. Abre el archivo HTML en tu navegador
-2. Haz clic en "Conectar"
-3. Envía mensajes y observa cómo el servidor responde con "Echo: [tu mensaje]"
+**Opción A: Usando http-server (Node.js)**
+```bash
+# Instalar si no lo tienes
+npm install -g http-server
 
-### 4.3 Pruebas con múltiples clientes
+# En la carpeta donde está el index.html
+http-server -p 3000
+```
+
+**Opción B: Usando Python**
+```bash
+# Python 3
+python -m http.server 3000
+```
+
+**Opción C: Desde Spring Boot**
+Coloca los archivos HTML y JS en `src/main/resources/static/` y accede a `http://localhost:8080`
+
+### 4.3 Abrir el cliente
+
+1. Accede a `http://localhost:3000` (si usas http-server o Python)
+2. O a `http://localhost:8080` (si sirves desde Spring Boot)
+3. Haz clic en "Conectar"
+4. Envía mensajes y observa cómo el servidor responde con "Echo: [tu mensaje]"
+
+**Nota sobre CORS:** Si ves errores de conexión WebSocket, asegúrate de que la configuración CORS está correctamente aplicada en el servidor Spring Boot.
+
+### 4.4 Pruebas con múltiples clientes
 
 Abre múltiples pestañas del navegador para simular varios clientes conectados simultáneamente.
 
