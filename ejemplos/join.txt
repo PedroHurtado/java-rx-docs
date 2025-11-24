@@ -1,0 +1,147 @@
+/*
+Imaginemos que tenemos dos secuencias de datos
+	a=[1,2,3]
+        b=[1,2]
+
+Ejecutar un strema que me permita hacer un inner join
+	1 1
+	2 2
+Ejecutar un stream que haga left outer join
+	1 1
+	2 2
+	3 null(Optional)
+*/
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+public class StreamJoinExample {    
+    
+    static class JoinResult<T> {
+        private final T left;
+        private final Optional<T> right;
+        
+        public JoinResult(T left, Optional<T> right) {
+            this.left = left;
+            this.right = right;
+        }
+        
+        @Override
+        public String toString() {
+            return left + " - " + right.map(String::valueOf).orElse("null");
+        }
+    }
+    
+    public static void main(String[] args) {
+        List<Integer> a = Arrays.asList(1, 2, 3);
+        List<Integer> b = Arrays.asList(1, 2);
+        
+        System.out.println("=== INNER JOIN ===");
+        innerJoin(a, b);
+        
+        System.out.println("\n=== LEFT OUTER JOIN ===");
+        leftOuterJoin(a, b);
+    }
+    
+    
+    public static void innerJoin(List<Integer> a, List<Integer> b) {
+        Set<Integer> setB = new HashSet<>(b);
+        
+        a.stream()
+            .filter(setB::contains)  
+            .forEach(element -> System.out.println(element + " - " + element));
+    }
+    
+    
+    public static void leftOuterJoin(List<Integer> a, List<Integer> b) {
+        Set<Integer> setB = new HashSet<>(b);
+        
+        a.stream()
+            .map(element -> new JoinResult<>(
+                element, 
+                setB.contains(element) ? Optional.of(element) : Optional.empty()
+            ))
+            .forEach(System.out::println);
+    }
+}
+
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class StreamJoinExample {
+    
+    static class JoinResult<T> {
+        private final T left;
+        private final Optional<T> right;
+        
+        public JoinResult(T left, Optional<T> right) {
+            this.left = left;
+            this.right = right;
+        }
+        
+        @Override
+        public String toString() {
+            return left + " - " + right.map(String::valueOf).orElse("null");
+        }
+    }
+    
+    public static void main(String[] args) {
+        List<Integer> a = Arrays.asList(1, 2, 3);
+        List<Integer> b = Arrays.asList(1, 2);
+        
+        System.out.println("=== INNER JOIN ===");
+        innerJoin(a, b);
+        
+        System.out.println("\n=== LEFT OUTER JOIN ===");
+        leftOuterJoin(a, b);
+    }
+    
+
+    public static void innerJoin(List<Integer> a, List<Integer> b) {
+        a.stream()
+            .flatMap(elementA -> 
+                b.stream()
+                    .filter(elementB -> elementA.equals(elementB))
+                    .map(elementB -> new AbstractMap.SimpleEntry<>(elementA, elementB))
+            )
+            .forEach(entry -> System.out.println(entry.getKey() + " - " + entry.getValue()));
+    }
+    
+
+    public static void leftOuterJoin(List<Integer> a, List<Integer> b) {
+        a.stream()
+            .map(elementA -> new JoinResult<>(
+                elementA,
+                b.stream()
+                    .filter(elementB -> elementA.equals(elementB))
+                    .findFirst()
+            ))
+            .forEach(System.out::println);
+    }
+}
+
+public static void main(String[] args) {
+    List<Integer> a = Arrays.asList(1, 2, 3);
+    List<Integer> b = Arrays.asList(1, 2);
+    
+    System.out.println("=== INNER JOIN ===");
+    a.stream()
+        .flatMap(x -> b.stream()
+            .filter(y -> x.equals(y))
+            .map(y -> x + " - " + y))
+        .forEach(System.out::println);
+    
+    System.out.println("\n=== LEFT OUTER JOIN ===");
+    a.stream()
+        .map(x -> x + " - " + 
+            b.stream()
+                .filter(y -> x.equals(y))
+                .findFirst() //optional
+
+                .map(String::valueOf)
+                .orElse("null"))
+
+        .forEach(System.out::println);
+}
