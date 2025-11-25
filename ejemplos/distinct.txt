@@ -134,6 +134,10 @@ Observable.just(
 .subscribe(foo -> System.out.println("Emitido: " + foo));
 
 
+/*
+inmutable
+hash->remplaza el hash y el equals
+*/
 record FooKey(int id, String category) {}
 
 Observable.just(
