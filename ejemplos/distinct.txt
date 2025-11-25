@@ -1,0 +1,158 @@
+import io.reactivex.rxjava3.core.Observable;
+
+
+class Foo {
+    private int id;
+    private String name;
+    
+    public Foo(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public int getId() {
+        return id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public String toString() {
+        return "Foo{id=" + id + ", name='" + name + "'}";
+    }
+}
+
+public class DistinctExample {
+    public static void main(String[] args) {
+        System.out.println("=== Prueba 1: Sin override de equals/hashCode ===");
+        
+        // Crear observable con dos instancias de Foo
+        Observable<Foo> observable1 = Observable.just(
+            new Foo(1, "foo"),
+            new Foo(1, "foo")
+        );
+        
+        // Aplicar distinct
+        observable1
+            .distinct()
+            .subscribe(
+                foo -> System.out.println("Emitido: " + foo),
+                error -> System.err.println("Error: " + error),
+                () -> System.out.println("Completado")
+            );
+        
+        System.out.println("\n=== Resultado: Emite LAS DOS instancias ===");
+        System.out.println("Porque distinct usa equals() y hashCode() por defecto,");
+        System.out.println("y sin override, compara referencias de objetos\n");
+    }
+}
+
+
+import io.reactivex.rxjava3.core.Observable;
+import java.util.Objects;
+
+// Clase Foo CON override de equals/hashCode basado en el id
+class Foo {
+    private int id;
+    private String name;
+    
+    public Foo(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    public int getId() {
+        return id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    // Override equals: dos Foo son iguales si tienen el mismo id
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Foo foo = (Foo) obj;
+        return id == foo.id;
+    }
+    
+    // Override hashCode: debe ser consistente con equals
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+    
+    @Override
+    public String toString() {
+        return "Foo{id=" + id + ", name='" + name + "'}";
+    }
+}
+
+public class DistinctExampleFixed {
+    public static void main(String[] args) {
+        System.out.println("=== Prueba 2: CON override de equals/hashCode ===");
+        
+        // Crear observable con dos instancias de Foo con el mismo id
+        Observable<Foo> observable2 = Observable.just(
+            new Foo(1, "foo"),
+            new Foo(1, "foo")
+        );
+        
+        // Aplicar distinct
+        observable2
+            .distinct()
+            .subscribe(
+                foo -> System.out.println("Emitido: " + foo),
+                error -> System.err.println("Error: " + error),
+                () -> System.out.println("Completado")
+            );
+        
+        System.out.println("\n=== Ahora distinct funciona correctamente ===");
+        
+        // Prueba adicional con diferentes ids
+        System.out.println("\n=== Prueba 3: Con diferentes ids ===");
+        Observable.just(
+            new Foo(1, "foo"),
+            new Foo(2, "bar"),
+            new Foo(1, "baz")  // Mismo id=1 pero diferente name
+        )
+        .distinct()
+        .subscribe(foo -> System.out.println("Emitido: " + foo));
+    }
+}
+
+
+Observable.just(
+    new Foo(1, "foo"),
+    new Foo(1, "foo")
+)
+.distinct(Foo::getId)  // Usa el id como clave
+.subscribe(foo -> System.out.println("Emitido: " + foo));
+
+
+record FooKey(int id, String category) {}
+
+Observable.just(
+    new Foo(1, "foo", "A"),
+    new Foo(1, "bar", "A"),  // Duplicado
+    new Foo(1, "baz", "B"),
+    new Foo(2, "qux", "A")
+)
+.distinct(foo -> new FooKey(foo.getId(), foo.getCategory()))
+.subscribe(foo -> System.out.println("Emitido: " + foo));
+
+
+import java.util.List;
+
+Observable.just(
+    new Foo(1, "foo", "A"),
+    new Foo(1, "bar", "A"),  // Duplicado
+    new Foo(1, "baz", "B"),
+    new Foo(2, "qux", "A")
+)
+.distinct(foo -> List.of(foo.getId(), foo.getCategory()))
+.subscribe(foo -> System.out.println("Emitido: " + foo));
